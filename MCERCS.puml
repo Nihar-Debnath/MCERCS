@@ -1,0 +1,103 @@
+@startuml MCERCSApp
+skinparam classAttributeIconSize 0
+
+enum UserRole {
+    STUDENT
+    FACULTY
+    RESPONDER
+    ADMIN
+}
+
+enum EmergencyType {
+    MEDICAL
+    FIRE
+    NATURAL_DISASTER
+    SECURITY_THREAT
+    INFRA_FAILURE
+}
+
+enum IncidentStatus {
+    REPORTED
+    IN_PROGRESS
+    RESOLVED
+}
+
+class User {
+    - userId: String
+    - name: String
+    - role: UserRole
+    + User(userId, name, role)
+}
+
+class IncidentReport {
+    - reportId: String
+    - reportedBy: User
+    - type: EmergencyType
+    - location: String
+    - timestamp: Date
+    - status: IncidentStatus
+    - assignedTeam: ResponseTeam
+    - resolutionNotes: String
+    + IncidentReport(reportId, reportedBy, type, location)
+    + assignTeam(team: ResponseTeam)
+    + resolve(notes: String)
+}
+
+class ResponseTeam {
+    - teamId: String
+    - teamType: String
+    - members: List<User>
+    - isAvailable: boolean
+    - location: String
+    + ResponseTeam(teamId, teamType, members, location)
+    + assign()
+    + release()
+}
+
+class IncidentLog {
+    - resolvedIncidents: List<IncidentReport>
+    + addLog(report: IncidentReport)
+    + getLogText(): String
+}
+
+class CommunicationSystem {
+    - messages: Map<String, List<String>>
+    + sendMessage(sender: User, receiver: User, message: String)
+    + getMessages(key: String): String
+}
+
+class MCERCSApp {
+    - frame: JFrame
+    - nameField: JTextField
+    - locationField: JTextField
+    - roleBox: JComboBox<String>
+    - typeBox: JComboBox<String>
+    - outputArea: JTextArea
+    - incidentLog: IncidentLog
+    - currentIncident: IncidentReport
+    - currentTeam: ResponseTeam
+    - responder: User
+    - comms: CommunicationSystem
+    + main(args: String[])
+    - buildGUI()
+    - handleReport()
+    - handleFeedback(feedbackButton: JButton)
+    - appendOutput(text: String)
+}
+
+UserRole --> User
+EmergencyType --> IncidentReport
+IncidentStatus --> IncidentReport
+User "1" --> "0..*" IncidentReport : reports
+IncidentReport "1" --> "1" User : reportedBy
+IncidentReport "1" --> "0..1" ResponseTeam : assignedTeam
+ResponseTeam "1" --> "1..*" User : members
+IncidentLog "1" --> "*" IncidentReport : resolvedIncidents
+CommunicationSystem --> User : uses for messaging
+MCERCSApp --> IncidentLog
+MCERCSApp --> IncidentReport
+MCERCSApp --> ResponseTeam
+MCERCSApp --> CommunicationSystem
+MCERCSApp --> User
+
+@enduml
